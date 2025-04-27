@@ -1,0 +1,44 @@
+Write a code to map a random variable X that can take a wide range of values to 
+another variable Y with values lying in limited interval say [0, 1] using a sigmoid 
+function (logistic function). Corosidering the Log Loss as the cost function of logistic 
+regression, compute its minimum with gradient descent method and estimate the parameters.
+
+
+import numpy as np 
+import matplotlib.pyplot as plt
+
+X1 = np.linspace(-2,2,25)
+X = np.stack((np.ones(len(X1)), X1), axis = 1)
+Y = (X1>0).astype(int)
+
+def sigmoid(z):
+    return 1/(1+np.exp(-z))
+
+n,k = X.shape
+epoch = 3000
+lr = 0.09
+betas = np.random.rand(2).reshape(-1,1)
+
+for i in range(epoch):
+    z = X@betas
+    cost_derivative = (X.T@sigmoid(z) - X.T @ Y.reshape(-1,1))/n
+    betas -= lr*cost_derivative 
+    
+print('Bias term : ',betas[0][0])
+print('coefficient of X1 in regression line : ',betas[1][0])
+
+z = X@betas
+Y_pred = (sigmoid(z)>0.5).astype(int)
+x = np.linspace(min(X1),max(X1),100)
+X = np.stack((np.ones(len(x)), x), axis = 1)
+y = sigmoid(X@betas)
+
+plt.plot(x,y,label = 'predicted value',color = 'slateblue')
+plt.scatter(X1,Y,label = 'Actual data',color = 'crimson')
+plt.xlabel('Data points')
+plt.ylabel('Values')
+plt.title('Logistic Regression')
+plt.grid()
+plt.legend(loc = 'center right')
+#plt.savefig('Logistic_regression',dpi = 300)
+plt.show()
