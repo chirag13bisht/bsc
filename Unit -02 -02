@@ -1,0 +1,67 @@
+'''Unit -02 -02 Bayesian Inference
+a) In an experiment of flipping a coin N times, M heads showed up (fraction of heads
+f = M/N). Write a code to determine the posterior probability, given the following
+prior for the probability of f:
+i. Beta Distribution B(a, b) with given values of a and b .
+ii. Gaussian Distribution with a given mean and variance.
+b) Using the Likelihood of Binomial distribution, determine the value of f (fraction
+of heads) that maximizes the probability of the data.
+c) Plot the Likelihood (normalised), Prior and Posterior Distributions. '''
+#Bayesian Inference
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import beta,norm,binom
+np.random.seed(22)
+N=50  #number of flips
+M=21
+#number of heads
+a=2 ;b=2
+g_mu=0.5 ; g_var=0.01
+f_MLE=M/N
+f_values=np.linspace(0,1,1000)
+#part (a)
+beta_samples=np.random.beta(a,b,N)
+beta_prior=beta.pdf(f_values,a,b)
+likelihood = binom.pmf(M, N, f_values)
+#normalise likelihood
+likelihood/=np.max(likelihood)
+posterior_beta=beta.pdf(f_values,a+M,b + N-M)
+posterior_beta /= np.trapezoid(posterior_beta, f_values)# normalizes the posterior using numerical integration (trapezoidal rule)
+gaussian_prior=norm.pdf(f_values,g_mu,g_var)
+posterior_gaussian=gaussian_prior*likelihood
+posterior_gaussian/=np.trapezoid(posterior_gaussian,f_values)
+#finding MAP
+f_map_beta = f_values[np.argmax(posterior_beta)]
+f_map_gaussian=f_values[np.argmax(posterior_gaussian)]
+#finding f_mean
+f_mean_beta= np.trapezoid(f_values * posterior_beta, f_values)
+f_mean_gaussian=np.trapezoid(f_values * posterior_gaussian, f_values)
+#part(b) - MLE
+print("Maximum Likelihood Estimate (MLE) of f:",f_MLE)
+print("Maximum a Posteriori (MAP) for beta posterior",f_map_beta)
+print("Maximum a Posteriori (MAP) for gaussian posterior",f_map_gaussian)
+print("f_mean for beta posterior",f_mean_beta)
+print("f_mean for gaussian posterior",f_mean_gaussian)
+# Part (c) - Plot Likelihood, Prior, and Posterior Distributions
+#plt.figure(figsize=(10, 6))
+plt.plot(f_values, likelihood, color='blue',label='Likelihood(Normalised)')
+plt.plot(f_values, beta_prior, color='red', label='Beta Prior a=2 , b=2')
+plt.plot(f_values, posterior_beta, color='green',linestyle='dashdot', label='Beta Posterior')
+plt.axvline(f_MLE, color='black', linestyle='--', label=f'MLE: {f_MLE}')
+plt.xlabel("Probability of Heads (f)")
+plt.ylabel("Density")
+plt.title("Likelihood, Prior, and Posterior Distributions")
+plt.legend()
+plt.grid()
+plt.show()
+#plt.figure(figsize=(10, 6))
+plt.plot(f_values, likelihood, color='blue',label='Likelihood(Normalised)')
+plt.plot(f_values, gaussian_prior, color='red', label='Gaussian Prior')
+plt.plot(f_values, posterior_gaussian, color='magenta', label='Gaussian Posterior')
+plt.axvline(f_MLE, color='black', linestyle='--', label=f'MLE: {f_MLE}')
+plt.xlabel("Probability of Heads (f)")
+plt.ylabel("Density")
+plt.title("Likelihood, Prior, and Posterior Distributions")
+plt.legend()
+plt.grid()
+plt.show()
