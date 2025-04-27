@@ -1,0 +1,52 @@
+'''Unit -01 -01 Generate sequences of N random numbers M (at least 10000) number of times from
+different distributions (e.g. Binomial, Poisson, Normal). Use the arithmetic mean of each
+random vector (of size N) and plot the distribution of the arithmetic means. Verify the
+Central Limit Theorem (CLT) for each distribution. Show that CLT is violated for the
+Cauchy-Lorentz distribution'''
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+N = 50  # size of random vector
+M = 10000  # No of random vectors
+
+# Function for plotting means
+def plotting_mean(distribution, samples, axis):
+    means = np.mean(samples, axis=1)
+    axis.hist(means, bins=50, density=True, alpha=0.7, label=f"Sampled {distribution}")
+
+    mu, sigma = norm.fit(means)  # Fitting normal distribution
+    x = np.linspace(min(means), max(means), 1000)
+    axis.plot(x, norm.pdf(x, mu, sigma), label=f"Fitted Normal (μ={mu:.2f}, σ={sigma:.2f})")
+
+    axis.set_title(f'{distribution} (N={N}, M={M})')
+    axis.set_xlabel("Mean")
+    axis.set_ylabel("Probability Density")
+    axis.legend()
+
+# Subplots
+fig, axis = plt.subplots(2, 2, figsize=(14, 10))
+axis = axis.ravel()
+
+# Binomial
+p = 0.5
+binomial_samples = np.random.binomial(n=10, p=p, size=(M, N))
+plotting_mean("Binomial", binomial_samples, axis[0])
+
+# Poisson
+lambda_ = 5
+poisson_samples = np.random.poisson(lam=lambda_, size=(M, N))
+plotting_mean("Poisson", poisson_samples, axis[1])
+
+# Normal
+normal_samples = np.random.normal(loc=0, scale=1, size=(M, N))
+plotting_mean("Normal", normal_samples, axis[2])
+
+# Cauchy-lorentz distribution
+cauchy_samples = np.random.standard_cauchy(size=(M, N))
+plotting_mean("Cauchy-Lorentz", cauchy_samples, axis[3])
+
+plt.tight_layout()
+plt.show()
