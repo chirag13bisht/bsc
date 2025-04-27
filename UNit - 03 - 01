@@ -1,0 +1,89 @@
+''' UNit - 03 - 01 Given a dataset (Xi, Yi). Write a code to obtain the parameters of linear regression
+equation using the method of least squares with both constant and variable errors in the
+dependent variable (Y). The data obtained in a physics lab may be used for this purpose.
+Also obtain the correlation coefficient and the 90% confidence interval for the regression
+line. Make a scatter plot along with error bars. Also, overlay the regression line and show
+the confidence interval. '''
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Data
+a = np.array([65, 63, 67, 64, 68, 62, 70, 66, 68, 67, 69, 71])
+b = np.array([68, 66, 68, 65, 69, 66, 68, 65, 71, 67, 68, 70])
+errors = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+errors1 = np.array([1, 2, 0.2, 3, 1.5, 3.5,1 , 0, 0.1, 3, 1.2, 0.8])
+epsilon = 1e-3
+
+# Calculate weights
+w = 1 / errors ** 2
+
+# Calculating weights for variable error terms
+w1 = []
+for i in errors1:
+    if int(i) == 0:
+        w1.append(1 / (min(errors1[errors1 != 0]) - epsilon) ** 2)
+    else:
+        w1.append(1 / i ** 2)
+
+n = len(a)
+
+# Weighted calculations
+(sumabw, sumaaw, sumaw, sumbw, sumw) = (np.sum(a * b * w), np.sum(a * a * w), np.sum(a * w), np.sum(b * w), np.sum(w))
+(sumabw1, sumaaw1, sumaw1, sumbw1, sumw1) = (np.sum(a * b * w1), np.sum(a * a * w1), np.sum(a * w1), np.sum(b * w1), np.sum(w1))
+
+(amean, bmean, t, dof) = (np.mean(a), np.mean(b), 2.228, 10)
+
+# Calculate regression line parameters
+m = (sumw * sumabw - (sumaw * sumbw)) / (sumw * sumaaw - (sumaw * sumaw))
+c = ((sumbw * sumaaw) - (sumabw * sumaw)) / (sumw * sumaaw - (sumaw * sumaw))
+
+m1 = (sumw1 * sumabw1 - (sumaw1 * sumbw1)) / (sumw1 * sumaaw1 - (sumaw1 * sumaw1))
+c1 = ((sumbw1 * sumaaw1) - (sumabw1 * sumaw1)) / (sumw1 * sumaaw1 - (sumaw1 * sumaw1))
+
+print("Slope for constant errors best fit line : ", m, "Intercept for constant errors best fit line : ", c)
+print("Slope for variable errors best fit line : ", m1, "Intercept for variable errors best fit line : ", c1)
+
+x = np.arange(60, 74, 2)
+y = m * x + c
+y1 = m1 * x + c1
+
+# Sample statistics
+(sample_var_x, sample_var_y) = (np.sum((a - amean) ** 2) / n, np.sum((b - bmean) ** 2) / n)
+sample_covar = np.sum((a - amean) * (b - bmean)) / n
+corr_coeff = sample_covar / ((sample_var_x ** 0.5) * (sample_var_y ** 0.5))
+std_error = np.sqrt(np.sum((b - (m * a + c)) ** 2) / n)
+
+(Beta1, Beta2) = (m + (t / dof) * (std_error / sample_var_x), m - (t / dof) * (std_error / sample_var_x))
+
+print("Standard Error : ", std_error, "Correlation Coefficient : ", corr_coeff)
+
+# Calculate confidence interval bounds
+upper_bound = (
+    (m * x + c)
+    + (t / (dof**0.5))
+    * std_error
+    * np.sqrt((1 + n) + (n*((x - amean) ** 2) / (sample_var_x)**2))
+)
+lower_bound = (
+    (m * x + c)
+    - (t / (dof**0.5))
+    * std_error
+    * np.sqrt((1 + n) + (n*((x - amean) ** 2) / (sample_var_x)**2))
+)
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.errorbar(a, b, yerr=errors, fmt='none', ecolor='black', capsize=5, label="Error Bars")  # Only error bars
+plt.plot(a, b, "bo", label="Actual Data Points")  # blue colored points
+plt.plot(x, y, "r-", label="Regression Line")
+plt.plot(x, y1, "g-", label="Regression Line with weights")
+plt.plot(x, upper_bound, "r--", label="Upper Confidence Interval")
+plt.plot(x, lower_bound, "r--", label="Lower Confidence Interval")
+plt.fill_between(x, lower_bound, upper_bound, color="gray", alpha=0.2, label="Confidence Interval Area")
+
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Linear Regression with Confidence Interval")
+plt.legend()
+plt.grid(True)
+plt.show()
