@@ -1,0 +1,62 @@
+'''Generate sequences of N random numbers M (at least 10000) number of times from
+different distributions (e.g. Binomial, Poisson, Normal). Use the arithmetic mean of each
+random vector (of size N) and plot the distribution of the arithmetic means. Verify the
+Central Limit Theorem (CLT) for each distribution. Show that CLT is violated for the
+Cauchy-Lorentz distribution'''
+
+import numpy as np
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+
+# Function to simulate coin tosses
+def coin_toss_simulation(n, q):
+    # Simulate 'n' coin tosses with probability 'q' for heads
+    tosses = np.random.binomial(1, q, n)  # 1 for heads, 0 for tails
+    return tosses
+
+# Function to perform Binomial test
+def binomial_test(n, q, observed_heads):
+    # Perform a Binomial test assuming H0: q = 0.5 (two-tailed)
+    p_value = 2 * min(
+        stats.binom.cdf(observed_heads, n, 0.5),  # CDF for the observed heads
+        1 - stats.binom.cdf(observed_heads - 1, n, 0.5)  # CDF for the complement
+    )
+    return p_value
+
+# Parameters
+n = 100  # Number of coin tosses
+q = 0.55  # Probability of heads (q != 0.5 to test the alternative hypothesis)
+
+# Simulate coin tosses
+tosses = coin_toss_simulation(n, q)
+
+# Count the number of heads observed
+observed_heads = np.sum(tosses)
+
+# Perform the binomial test
+p_value = binomial_test(n, q, observed_heads)
+
+# Plot the Binomial distribution under H0 (q = 0.5)
+x = np.arange(0, n + 1)
+binomial_pmf = stats.binom.pmf(x, n, 0.5)
+
+# Create the plot
+plt.figure(figsize=(10, 6))
+plt.bar(x, binomial_pmf, color='lightblue', label='Binomial PMF (H0: q=0.5)', width=0.6)
+plt.plot(x, binomial_pmf, color='blue', linewidth=2, label='PMF Curve')  # the smooth curve
+plt.axvline(observed_heads, color='red', linestyle='--', label=f'Observed Heads = {observed_heads}')
+plt.xlabel('Number of Heads')
+plt.ylabel('Probability')
+plt.title('Binomial Distribution under Null Hypothesis (q = 0.5)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+# Print results
+print(f"Observed heads: {observed_heads} out of {n} tosses")
+print(f"P-value: {p_value}")
+if p_value < 0.05:
+    print("Reject the Null hypothesis H0: q = 0.5")
+else:
+    print("Fail to reject the Null hypothesis H0: q = 0.5")
