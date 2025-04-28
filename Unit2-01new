@@ -1,0 +1,36 @@
+import numpy as np
+from scipy.stats import binomtest  
+from scipy.stats import binom
+import matplotlib.pyplot as plt
+
+def coin_toss_simulation(n, q):
+    # Simulate n coin tosses with probability q of getting heads (1)
+    tosses = np.random.binomial(1, q, n)
+    num_heads = np.sum(tosses)
+    plt.vlines(num_heads,0, binom.pmf(num_heads,n,0.5),color="red", label="observed heads")
+    return num_heads
+
+def perform_binomial_test(n, q):
+    num_heads = coin_toss_simulation(n, q)
+    print(f"Number of heads: {num_heads} out of {n} tosses")
+
+    # Perform two-tailed binomial test
+    test_result = binomtest(num_heads, n, p=0.5, alternative='two-sided')
+    print(f"P-value: {test_result.pvalue}")
+    if test_result.pvalue < 0.05:
+        print("Reject the null hypothesis: Coin is likely biased.")
+    else:
+        print("Fail to reject the null hypothesis: Coin is likely fair.")
+
+# Example usage:
+n = 100   # Number of tosses
+q = 0.55   # Actual probability of heads
+perform_binomial_test(n, q)
+x=np.arange(0,n+1)
+p=binom.pmf(x,n,0.5)
+plt.plot(x,p, label=f'unbaised coin binomial distribution')
+plt.xlabel("no. of heads")
+plt.ylabel("probabliity")
+plt.grid()
+plt.legend()
+plt.show()
